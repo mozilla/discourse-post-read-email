@@ -70,6 +70,14 @@ test("mark_post_as_read_on_email = 'true'", assert => {
   checkbox_test_common(assert, true)
 })
 
+test("mark_post_as_read_on_email = 't'", assert => {
+  server.get("/u/eviltrout.json", () => {
+    return response(null, { custom_fields: { mark_post_as_read_on_email: "t" } })
+  })
+
+  checkbox_test_common(assert, true)
+})
+
 test("mark_post_as_read_on_email = false", assert => {
   server.get("/u/eviltrout.json", () => {
     return response(null, { custom_fields: { mark_post_as_read_on_email: false } })
@@ -81,6 +89,14 @@ test("mark_post_as_read_on_email = false", assert => {
 test("mark_post_as_read_on_email = 'false'", assert => {
   server.get("/u/eviltrout.json", () => {
     return response(null, { custom_fields: { mark_post_as_read_on_email: "false" } })
+  })
+
+  checkbox_test_common(assert, false)
+})
+
+test("mark_post_as_read_on_email = 'f'", assert => {
+  server.get("/u/eviltrout.json", () => {
+    return response(null, { custom_fields: { mark_post_as_read_on_email: "f" } })
   })
 
   checkbox_test_common(assert, false)
