@@ -1,0 +1,3 @@
+en:
+  site_settings:
+    post_read_email_enabled: "Allow users to mark posts as read when they're emailed about them"

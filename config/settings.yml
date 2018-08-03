@@ -1,0 +1,4 @@
+plugins:
+  post_read_email_enabled:
+    default: true
+    client: true

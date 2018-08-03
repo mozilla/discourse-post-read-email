@@ -16,6 +16,7 @@ describe "EmailSenderExtensions" do
   before do
     NotificationEmailer.enable
     SiteSetting.queue_jobs = false
+    Rails.logger.expects(:error).never
   end
 
   let(:user) { Fabricate(:user) }
@@ -55,19 +56,19 @@ describe "EmailSenderExtensions" do
     end
   end
 
-  context "when notification email succeeds" do
-
-    shared_examples "sends email" do
-      it "sends post notification" do
-        PostAlerter.post_created(post)
-        expect(EmailLog.where(user: user, post: post, skipped: false, email_type: "user_posted").count).to eq(1)
-      end
-
-      it "sends pm notification" do
-        PostAlerter.post_created(pm_post)
-        expect(EmailLog.where(user: user, post: pm_post, skipped: false, email_type: "user_private_message").count).to eq(1)
-      end
+  shared_examples "sends email" do
+    it "sends post email" do
+      PostAlerter.post_created(post)
+      expect(EmailLog.where(user: user, post: post, email_type: "user_posted").count).to eq(1)
     end
+
+    it "sends pm email" do
+      PostAlerter.post_created(pm_post)
+      expect(EmailLog.where(user: user, post: pm_post, email_type: "user_private_message").count).to eq(1)
+    end
+  end
+
+  context "when notification email succeeds" do
 
     context "when mark_post_as_read_on_email is unset" do
       include_examples "sends email"
@@ -121,49 +122,22 @@ describe "EmailSenderExtensions" do
     end
 
     shared_examples "skips email" do
-      it "skips post notification" do
+      it "skips post email" do
         PostAlerter.post_created(post)
-        expect(EmailLog.where(user: user, post: post, skipped: false, email_type: "user_posted").count).to eq(0)
-        expect(EmailLog.where(user: user, skipped: true, email_type: "user_posted").count).to eq(1)
+        expect(EmailLog.where(user: user, post: post, email_type: "user_posted").count).to eq(0)
+        expect(SkippedEmailLog.where(user: user, email_type: "user_posted").count).to eq(1)
       end
 
-      it "skips pm notification" do
+      it "skips pm email" do
         PostAlerter.post_created(pm_post)
-        expect(EmailLog.where(user: user, post: pm_post, skipped: false, email_type: "user_private_message").count).to eq(0)
-        expect(EmailLog.where(user: user, skipped: true, email_type: "user_private_message").count).to eq(1)
+        expect(EmailLog.where(user: user, post: pm_post, email_type: "user_private_message").count).to eq(0)
+        expect(SkippedEmailLog.where(user: user, email_type: "user_private_message").count).to eq(1)
       end
 
       include_examples "leaves unread"
     end
 
     context "when mark_post_as_read_on_email is unset" do
-      include_examples "skips email"
-    end
-
-    context "when mark_post_as_read_on_email is 'false'" do
-      before do
-        user.custom_fields["mark_post_as_read_on_email"] = "false"
-        user.save_custom_fields
-      end
-
-      include_examples "skips email"
-    end
-
-    context "when mark_post_as_read_on_email is false" do
-      before do
-        user.custom_fields["mark_post_as_read_on_email"] = false
-        user.save_custom_fields
-      end
-
-      include_examples "skips email"
-    end
-
-    context "when mark_post_as_read_on_email is 'true'" do
-      before do
-        user.custom_fields["mark_post_as_read_on_email"] = "true"
-        user.save_custom_fields
-      end
-
       include_examples "skips email"
     end
 
@@ -175,6 +149,32 @@ describe "EmailSenderExtensions" do
 
       include_examples "skips email"
     end
+  end
+
+  context "when exception is raised in plugin code" do
+    before do
+      custom_fields = {}
+      custom_fields.stubs(:[]).returns(nil)
+      custom_fields.stubs(:[]).with("mark_post_as_read_on_email").raises(RuntimeError)
+      User.any_instance.stubs(:custom_fields).returns(custom_fields)
+      Rails.logger.expects(:error)
+    end
+
+    include_examples "sends email"
+    include_examples "leaves unread"
+  end
+
+  context "when plugin is disabled" do
+    before do
+      SiteSetting.post_read_email_enabled = false
+      custom_fields = {}
+      custom_fields.stubs(:[]).with(Not(equals("mark_post_as_read_on_email"))).returns(nil)
+      custom_fields.expects(:[]).with("mark_post_as_read_on_email").never
+      User.any_instance.stubs(:custom_fields).returns(custom_fields)
+    end
+
+    include_examples "sends email"
+    include_examples "leaves unread"
   end
 
 end

@@ -21,7 +21,23 @@ const savePreferences = assert => {
   })
 }
 
-acceptance("Post Read Email", { loggedIn: true })
+acceptance("Post Read Email", {
+  loggedIn: true,
+  beforeEach() {
+    Discourse.SiteSettings.post_read_email_enabled = true
+  }
+})
+
+test("preference doesn't appear", assert => {
+  Discourse.SiteSettings.post_read_email_enabled = false
+
+  visit("/u/eviltrout/preferences/emails")
+
+  andThen(() => {
+    assert.notOk(exists("#post-read-email-preference"), "preference visible")
+    assert.notOk(exists("#post-read-email-preference input[type=checkbox]"), "checkbox visible")
+  })
+})
 
 test("preference appears", assert => {
   visit("/u/eviltrout/preferences/emails")
