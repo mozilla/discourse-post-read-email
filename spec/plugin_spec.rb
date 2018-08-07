@@ -1,4 +1,4 @@
-require "rails_helper"
+require_relative "plugin_helper"
 
 describe UserSerializer do
   let(:user) { Fabricate(:user) }
