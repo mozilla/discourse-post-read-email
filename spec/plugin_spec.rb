@@ -178,3 +178,12 @@ describe "EmailSenderExtensions" do
   end
 
 end
+
+describe "User Preferences", type: :request do
+  it "should change mark post as read on email custom field" do
+    user = Fabricate(:user)
+    sign_in(user)
+    put "/u/#{user.username}.json", params: { "custom_fields[mark_post_as_read_on_email]": true }
+    expect(user.custom_fields["mark_post_as_read_on_email"]).to eq "true"
+  end
+end
