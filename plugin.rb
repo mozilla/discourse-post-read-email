@@ -1,6 +1,6 @@
 # name: post-read-email
 # about: A plugin to give users the option of marking posts as read when emailed
-# version: 0.0.5
+# version: 0.0.6
 # authors: Leo McArdle
 # url: https://github.com/mozilla/discourse-post-read-email
 

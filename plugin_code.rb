@@ -4,8 +4,8 @@ DiscoursePluginRegistry.serialized_current_user_fields << 'mark_post_as_read_on_
 
 module PostReadEmail
   module EmailSenderExtensions
-    def send
-      email_log = super
+    def send(**args)
+      email_log = super(**args)
       begin
         return email_log unless SiteSetting.post_read_email_enabled
         return email_log if email_log.kind_of?(SkippedEmailLog)
