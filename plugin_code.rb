@@ -9,9 +9,11 @@ module PostReadEmail
       begin
         return email_log unless SiteSetting.post_read_email_enabled
         return email_log if email_log.kind_of?(SkippedEmailLog)
+        return email_log if email_log.post_id.nil?
+        return email_log unless @user&.custom_fields
         if @user&.custom_fields['mark_post_as_read_on_email'] == 't' ||
            @user&.custom_fields['mark_post_as_read_on_email'] == 'true'
-          post = Post.find(email_log.post_id) unless email_log.post_id.nil?
+          post = Post.find(email_log.post_id)
           if post
             Notification.where(
               user_id: @user.id,
