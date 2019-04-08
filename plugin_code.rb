@@ -8,6 +8,7 @@ module PostReadEmail
       email_log = super(**args)
       begin
         return email_log unless SiteSetting.post_read_email_enabled
+        return email_log if email_log.nil?
         return email_log if email_log.kind_of?(SkippedEmailLog)
         return email_log if email_log.post_id.nil?
         return email_log unless @user&.custom_fields
