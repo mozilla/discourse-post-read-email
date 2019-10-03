@@ -1,3 +1,4 @@
+require "email"
 require "email/sender"
 
 DiscoursePluginRegistry.serialized_current_user_fields << 'mark_post_as_read_on_email'
